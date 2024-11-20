@@ -11,9 +11,10 @@ contract AnimeConsumer is FunctionsClient, ConfirmedOwner {
     bytes32 public s_lastRequestId;
     bytes public s_lastResponse;
     bytes public s_lastError;
+    // string public s_lastQuote;
+    // string public s_lastCharacter;
+    // string public s_lastAnime;
     string public s_lastQuote;
-    string public s_lastCharacter;
-    string public s_lastAnime;
 
     bytes32 donID =
         0x66756e2d626173652d7365706f6c69612d310000000000000000000000000000;
@@ -46,7 +47,10 @@ contract AnimeConsumer is FunctionsClient, ConfirmedOwner {
         "console.log(`Quote: ${quote}`);"
         "console.log(`Anime: ${anime}`);"
         "console.log(`Character: ${character}`);"
-        "const encodedData = Functions.encodeString(JSON.stringify({ quote, anime, character }));"
+        // Combine quote and character name into a single string
+        "const combinedString = `${quote} ~ ${character}`;"
+        // Encode the combined string
+        "const encodedData = Functions.encodeString(combinedString);"
         "return encodedData;";
 
     function sendRequest() external onlyOwner returns (bytes32 requestId) {
@@ -76,17 +80,12 @@ contract AnimeConsumer is FunctionsClient, ConfirmedOwner {
         if (s_lastRequestId != requestId) {
             revert UnexpectedRequestID(requestId);
         }
-        // Decode the response data
-        (
-            string memory quote,
-            string memory anime,
-            string memory character
-        ) = abi.decode(response, (string, string, string));
 
-        // Save the decoded response to state variables
-        s_lastQuote = quote;
-        s_lastAnime = anime;
-        s_lastCharacter = character;
+        // Decode the response as a single string
+        string memory combinedString = string(response);
+
+        // Save the combined string to a state variable
+        s_lastQuote = combinedString;
 
         s_lastError = err;
         emit Response(requestId, response, err);
